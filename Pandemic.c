@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+	char *pais;
+	struct Node *sigt;
+	struct Node *ant;
+};
+
+struct Paises {
+	struct Node *start;
+};
+
+struct Paises *crearPais() {
+    struct Paises *newList = calloc(1, sizeof(struct Paises));
+    if (newList == NULL) {
+        printf("No se pudieron crear los paises\n");
+    }
+    return newList;
+}
+
+struct Node* createNewNode(char* pais) {
+    struct Node *newNode = calloc(1, sizeof(struct Node));
+    if (newNode == NULL) {
+        return NULL;
+    }
+    newNode -> pais = pais;
+    return newNode;
+}
+
+int insertar_final(struct Paises *lista, char *elemento){
+	if (lista == NULL) {
+        printf("No es lista valida\n");
+        return -1;
+    }
+    struct Node* newNode = createNewNode(elemento);
+	if (newNode == NULL) {
+		printf("Error creando un nuevo nodo\n");
+		return -1;
+	} else if (lista->start == NULL) {
+		lista -> start = newNode;
+	} else {
+		struct Node* currentNode = lista->start;
+		while (currentNode->sigt != NULL) {
+			currentNode = currentNode -> sigt;
+		}
+		currentNode->sigt = newNode;
+		newNode-> ant = currentNode;
+	}
+	return 0; 
+}
+void imprimir_lista(struct Paises *lista){
+    if (lista == NULL) {
+        printf("No es lista valida\n");
+    }
+    struct Node* currentNode = lista->start;
+
+    while (currentNode != NULL) {
+        printf("Pais: %s\n", currentNode->pais);
+        currentNode = currentNode->sigt;
+    }
+
+    printf("Se mostraron todos los valores\n\n");
+}
+
+int main() {
+	struct Paises *lista = crearPais();
+	char *paises[] = {
+	"Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
+	"Costa Rica", "Cuba", "Republica Dominicana", "Ecuador",
+	"El Salvador", "Guatemala", "Honduras", "Mexico",
+	"Nicaragua", "Panama", "Paraguay", "Peru",
+	"Puerto Rico", "Uruguay", "Venezuela",
+	"Haiti", "Belice", "Guyana", "Surinam"
+    };
+
+    for (int i = 0; i < 24; i++) {
+        insertar_final(lista, paises[i]);
+    }
+    imprimir_lista(lista);
+    return 0;
+}
