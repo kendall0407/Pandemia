@@ -155,11 +155,10 @@ void imprimir_vecinos(struct Node *pais) {
         printf(" (Sin vecinos registrados)\n");
     printf("\n");
 }
-
-// MAIN
-int main() {
+struct Paises* crearMapaLatinoamerica() {
     struct Paises *lista = crearPaises();
 
+    // Crear países
     char *paises[] = {
         "Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
         "Costa Rica", "Cuba", "Republica Dominicana", "Ecuador",
@@ -169,28 +168,117 @@ int main() {
         "Haiti", "Belice", "Guyana", "Surinam"
     };
 
-    // Insertar países
-    for (int i = 0; i < 24; i++) {
+    for (int i = 0; i < 24; i++)
         insertar_final(lista, paises[i], 5);
-    }
 
-    // Conectar algunos países como ejemplo
-    struct Node *costaRica = buscarPais(lista, "Costa Rica");
-    struct Node *panama = buscarPais(lista, "Panama");
-    struct Node *nicaragua = buscarPais(lista, "Nicaragua");
-    struct Node *colombia = buscarPais(lista, "Colombia");
+    // Buscar punteros
+    struct Node *arg = buscarPais(lista, "Argentina");
+    struct Node *bol = buscarPais(lista, "Bolivia");
+    struct Node *bra = buscarPais(lista, "Brasil");
+    struct Node *chi = buscarPais(lista, "Chile");
+    struct Node *col = buscarPais(lista, "Colombia");
+    struct Node *crc = buscarPais(lista, "Costa Rica");
+    struct Node *ecu = buscarPais(lista, "Ecuador");
+    struct Node *sal = buscarPais(lista, "El Salvador");
+    struct Node *gua = buscarPais(lista, "Guatemala");
+    struct Node *hon = buscarPais(lista, "Honduras");
+    struct Node *mex = buscarPais(lista, "Mexico");
+    struct Node *nic = buscarPais(lista, "Nicaragua");
+    struct Node *pan = buscarPais(lista, "Panama");
+    struct Node *par = buscarPais(lista, "Paraguay");
+    struct Node *per = buscarPais(lista, "Peru");
+    struct Node *uru = buscarPais(lista, "Uruguay");
+    struct Node *ven = buscarPais(lista, "Venezuela");
+    struct Node *guy = buscarPais(lista, "Guyana");
+    struct Node *sur = buscarPais(lista, "Surinam");
+    struct Node *bel = buscarPais(lista, "Belice");
 
-    if (costaRica && panama) conectarPaises(costaRica, panama);
-    if (costaRica && nicaragua) conectarPaises(costaRica, nicaragua);
-    if (panama && colombia) conectarPaises(panama, colombia);
+    // 🔗 Conexiones geográficas
+    conectarPaises(arg, chi);
+    conectarPaises(arg, bol);
+    conectarPaises(arg, par);
+    conectarPaises(arg, uru);
 
-    // Mostrar lista
-    imprimir_lista(lista);
+    conectarPaises(bol, arg);
+    conectarPaises(bol, par);
+    conectarPaises(bol, per);
+    conectarPaises(bol, bra);
+    conectarPaises(bol, chi);
 
-    // Mostrar vecinos específicos
-    imprimir_vecinos(costaRica);
-    imprimir_vecinos(panama);
+    conectarPaises(bra, arg);
+    conectarPaises(bra, uru);
+    conectarPaises(bra, par);
+    conectarPaises(bra, bol);
+    conectarPaises(bra, per);
+    conectarPaises(bra, ven);
+    conectarPaises(bra, guy);
+    conectarPaises(bra, sur);
 
-    return 0;
+    conectarPaises(chi, arg);
+    conectarPaises(chi, bol);
+    conectarPaises(chi, per);
+
+    conectarPaises(per, chi);
+    conectarPaises(per, bol);
+    conectarPaises(per, ecu);
+    conectarPaises(per, bra);
+    conectarPaises(per, col);
+
+    conectarPaises(ecu, per);
+    conectarPaises(ecu, col);
+
+    conectarPaises(col, ecu);
+    conectarPaises(col, ven);
+    conectarPaises(col, pan);
+    conectarPaises(col, per);
+    conectarPaises(col, bra);
+
+    conectarPaises(pan, col);
+    conectarPaises(pan, crc);
+
+    conectarPaises(crc, pan);
+    conectarPaises(crc, nic);
+
+    conectarPaises(nic, crc);
+    conectarPaises(nic, hon);
+
+    conectarPaises(hon, nic);
+    conectarPaises(hon, sal);
+    conectarPaises(hon, gua);
+
+    conectarPaises(sal, hon);
+    conectarPaises(sal, gua);
+
+    conectarPaises(gua, sal);
+    conectarPaises(gua, mex);
+    conectarPaises(gua, bel);
+
+    conectarPaises(bel, gua);
+    conectarPaises(bel, mex);
+
+    conectarPaises(mex, gua);
+    conectarPaises(mex, bel);
+
+    conectarPaises(ven, col);
+    conectarPaises(ven, bra);
+    conectarPaises(ven, guy);
+
+    conectarPaises(guy, ven);
+    conectarPaises(guy, sur);
+    conectarPaises(guy, bra);
+
+    conectarPaises(sur, guy);
+    conectarPaises(sur, bra);
+
+    conectarPaises(uru, arg);
+    conectarPaises(uru, bra);
+
+    return lista;
 }
 
+// MAIN
+int main() {
+    struct Paises *latam = crearMapaLatinoamerica();
+    imprimir_lista(latam);
+    return 0;
+}
