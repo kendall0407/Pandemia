@@ -96,16 +96,53 @@ struct Node* buscarPais(struct Paises *lista, char *nombre) {
 
 // Imprimir lista de países
 void imprimir_lista(struct Paises *lista) {
-    if (lista == NULL) {
-        printf("No es lista valida\n");
+    if (lista == NULL || lista->start == NULL) {
+        printf("⚠️  No hay países en la lista.\n");
         return;
     }
-    struct Node* currentNode = lista->start;
-    while (currentNode != NULL) {
-        printf("País: %s\n", currentNode->pais);
-        currentNode = currentNode->sigt;
+
+    struct Node *actual = lista->start;
+    printf("\n🌎 ====== ESTADO ACTUAL DEL MAPA DE AMÉRICA LATINA ======\n\n");
+
+    while (actual != NULL) {
+        printf("🗺️  País: %s\n", actual->pais);
+
+        // Mostrar país anterior y siguiente
+        if (actual->ant)
+            printf("   ↩️  Anterior: %s\n", actual->ant->pais);
+        else
+            printf("   ↩️  Anterior: (Ninguno)\n");
+
+        if (actual->sigt)
+            printf("   ↪️  Siguiente: %s\n", actual->sigt->pais);
+        else
+            printf("   ↪️  Siguiente: (Ninguno)\n");
+
+        // Mostrar aspectos
+        printf("   🌡️  Aspectos (%d): ", actual->numAspectos);
+        for (int i = 0; i < actual->numAspectos; i++) {
+            printf("[%d]", actual->aspectos[i]);
+            if (i < actual->numAspectos - 1) printf(" ");
+        }
+        printf("\n");
+
+        // Mostrar vecinos
+        printf("   🌐  Vecinos (%d): ", actual->numVecinos);
+        if (actual->numVecinos == 0) {
+            printf("(Sin vecinos registrados)");
+        } else {
+            for (int i = 0; i < actual->numVecinos; i++) {
+                printf("%s", actual->vecinos[i]->pais);
+                if (i < actual->numVecinos - 1) printf(", ");
+            }
+        }
+        printf("\n");
+
+        printf("   ------------------------------------------------------\n");
+        actual = actual->sigt;
     }
-    printf("Se mostraron todos los países\n\n");
+
+    printf("\n✅ Fin de la lista de países.\n\n");
 }
 
 // Imprimir vecinos de un país
