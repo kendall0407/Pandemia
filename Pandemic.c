@@ -89,20 +89,40 @@ void imprimir_lista(struct Paises *lista){
     printf("Se mostraron todos los valores\n\n");
 }
 
+// MAIN
 int main() {
-	struct Paises *lista = crearPais();
-	char *paises[] = {
-	"Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
-	"Costa Rica", "Cuba", "Republica Dominicana", "Ecuador",
-	"El Salvador", "Guatemala", "Honduras", "Mexico",
-	"Nicaragua", "Panama", "Paraguay", "Peru",
-	"Puerto Rico", "Uruguay", "Venezuela",
-	"Haiti", "Belice", "Guyana", "Surinam"
+    struct Paises *lista = crearPaises();
+
+    char *paises[] = {
+        "Argentina", "Bolivia", "Brasil", "Chile", "Colombia",
+        "Costa Rica", "Cuba", "Republica Dominicana", "Ecuador",
+        "El Salvador", "Guatemala", "Honduras", "Mexico",
+        "Nicaragua", "Panama", "Paraguay", "Peru",
+        "Puerto Rico", "Uruguay", "Venezuela",
+        "Haiti", "Belice", "Guyana", "Surinam"
     };
 
+    // Insertar países
     for (int i = 0; i < 24; i++) {
-        insertar_final(lista, paises[i],5);
+        insertar_final(lista, paises[i], 5);
     }
+
+    // Conectar algunos países como ejemplo
+    struct Node *costaRica = buscarPais(lista, "Costa Rica");
+    struct Node *panama = buscarPais(lista, "Panama");
+    struct Node *nicaragua = buscarPais(lista, "Nicaragua");
+    struct Node *colombia = buscarPais(lista, "Colombia");
+
+    if (costaRica && panama) conectarPaises(costaRica, panama);
+    if (costaRica && nicaragua) conectarPaises(costaRica, nicaragua);
+    if (panama && colombia) conectarPaises(panama, colombia);
+
+    // Mostrar lista
     imprimir_lista(lista);
+
+    // Mostrar vecinos específicos
+    imprimir_vecinos(costaRica);
+    imprimir_vecinos(panama);
+
     return 0;
 }
