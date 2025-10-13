@@ -1,25 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct Node {
-	char *pais;
-    int *aspectos;
-    int *numAspectos;
+    char *pais;
+    int *aspectos;          // valores de los aspectos
+    int numAspectos;        // cantidad de aspectos
 
+    struct Node **vecinos;  // arreglo de punteros a países vecinos
+    int numVecinos;
 
-    struct Pais **vecinos; // arreglo de punteros a otros paises
-    int numVecinos;  
-
-
-	struct Node *sigt;
-	struct Node *ant;
+    struct Node *sigt;
+    struct Node *ant;
 };
 
 struct Paises {
-	struct Node *start;
+    struct Node *start;
 };
 
-struct Paises *crearPais() {
+// Crear lista
+struct Paises *crearPaises() {
     struct Paises *newList = calloc(1, sizeof(struct Paises));
     if (newList == NULL) {
         printf("No se pudieron crear los paises\n");
@@ -27,66 +27,96 @@ struct Paises *crearPais() {
     return newList;
 }
 
+// Crear un país
 struct Node* createNewNode(char* pais, int numAspectos) {
     struct Node *newNode = calloc(1, sizeof(struct Node));
     if (newNode == NULL) {
+        printf("Error creando un nodo\n");
         return NULL;
     }
-    newNode -> aspectos = calloc(numAspectos, sizeof(int));
-    newNode -> pais = pais;
-    newNode -> numAspectos = numAspectos;
+    newNode->pais = pais;
+    newNode->aspectos = calloc(numAspectos, sizeof(int));
+    newNode->numAspectos = numAspectos;
 
-    newNode->vecinos = NULL;     // no tiene vecinos todavia
+    newNode->vecinos = NULL;
     newNode->numVecinos = 0;
 
     newNode->ant = NULL;
     newNode->sigt = NULL;
     return newNode;
 }
+
+// Agregar vecino a un país
 void agregarVecino(struct Node *pais, struct Node *nuevoVecino) {
     pais->numVecinos++;
-    pais->vecinos = realloc(pais->vecinos, pais->numVecinos * sizeof(struct Pais *));
+    pais->vecinos = realloc(pais->vecinos, pais->numVecinos * sizeof(struct Node *));
     pais->vecinos[pais->numVecinos - 1] = nuevoVecino;
 }
+
+// Conectar dos países (bidireccionalmente)
 void conectarPaises(struct Node *a, struct Node *b) {
     agregarVecino(a, b);
     agregarVecino(b, a);
 }
 
-
-int insertar_final(struct Paises *lista, char *elemento, int numAspectos){
-	if (lista == NULL) {
+// Insertar país al final de la lista
+int insertar_final(struct Paises *lista, char *elemento, int numAspectos) {
+    if (lista == NULL) {
         printf("No es lista valida\n");
         return -1;
     }
+
     struct Node* newNode = createNewNode(elemento, numAspectos);
-	if (newNode == NULL) {
-		printf("Error creando un nuevo nodo\n");
-		return -1;
-	} else if (lista->start == NULL) {
-		lista -> start = newNode;
-	} else {
-		struct Node* currentNode = lista->start;
-		while (currentNode->sigt != NULL) {
-			currentNode = currentNode -> sigt;
-		}
-		currentNode->sigt = newNode;
-		newNode-> ant = currentNode;
-	}
-	return 0; 
+    if (newNode == NULL) {
+        printf("Error creando un nuevo nodo\n");
+        return -1;
+    } else if (lista->start == NULL) {
+        lista->start = newNode;
+    } else {
+        struct Node* currentNode = lista->start;
+        while (currentNode->sigt != NULL) {
+            currentNode = currentNode->sigt;
+        }
+        currentNode->sigt = newNode;
+        newNode->ant = currentNode;
+    }
+    return 0;
 }
-void imprimir_lista(struct Paises *lista){
+
+// Buscar país por nombre
+struct Node* buscarPais(struct Paises *lista, char *nombre) {
+    struct Node *current = lista->start;
+    while (current != NULL) {
+        if (strcmp(current->pais, nombre) == 0)
+            return current;
+        current = current->sigt;
+    }
+    return NULL;
+}
+
+// Imprimir lista de países
+void imprimir_lista(struct Paises *lista) {
     if (lista == NULL) {
         printf("No es lista valida\n");
+        return;
     }
     struct Node* currentNode = lista->start;
-
     while (currentNode != NULL) {
-        printf("Pais: %s\n", currentNode->pais);
+        printf("País: %s\n", currentNode->pais);
         currentNode = currentNode->sigt;
     }
+    printf("Se mostraron todos los países\n\n");
+}
 
-    printf("Se mostraron todos los valores\n\n");
+// Imprimir vecinos de un país
+void imprimir_vecinos(struct Node *pais) {
+    printf("Vecinos de %s:\n", pais->pais);
+    for (int i = 0; i < pais->numVecinos; i++) {
+        printf(" - %s\n", pais->vecinos[i]->pais);
+    }
+    if (pais->numVecinos == 0)
+        printf(" (Sin vecinos registrados)\n");
+    printf("\n");
 }
 
 // MAIN
@@ -126,3 +156,4 @@ int main() {
 
     return 0;
 }
+
