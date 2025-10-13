@@ -275,6 +275,75 @@ struct Paises* crearMapaLatinoamerica() {
 
     return lista;
 }
+
+
+//Tabla de dispersion
+#define TABLE_SIZE 100
+
+// -------------------- Estructuras --------------------
+typedef struct Proyecto {
+    char *nombre;
+    char *descripcion;
+    char *bibliografia;
+    char **paises;  // arreglo dinámico de cadenas
+    int numPaises;
+    struct Proyecto *siguiente;  // para colisiones
+} Proyecto;
+
+typedef struct {
+    Proyecto *buckets[TABLE_SIZE];
+} HashTable;
+
+// -------------------- Función hash --------------------
+unsigned int hash(const char *str) {
+    unsigned int h = 0;
+    while (*str)
+        h = (h * 31) + *str++;
+    return h % TABLE_SIZE;
+}
+
+// -------------------- Crear tabla --------------------
+HashTable *crearTabla() {
+    HashTable *tabla = calloc(1, sizeof(HashTable));
+    for (int i = 0; i < TABLE_SIZE; i++)
+        tabla->buckets[i] = NULL;
+    return tabla;
+}
+
+// -------------------- Insertar elemento --------------------
+void insertar(HashTable *tabla, const char *nombre, const char *descripcion,
+                      const char *bibliografia, char **paises, int numPaises) {
+    unsigned int indice = hash(nombre);
+
+    Proyecto *nuevo = malloc(sizeof(Proyecto));
+    nuevo->nombre = strdup(nombre);
+    nuevo->descripcion = strdup(descripcion);
+    nuevo->bibliografia = strdup(bibliografia);
+
+    nuevo->numPaises = numPaises;
+    nuevo->paises = malloc(numPaises * sizeof(char *));
+    for (int i = 0; i < numPaises; i++)
+        nuevo->paises[i] = strdup(paises[i]);
+
+    nuevo->siguiente = tabla->buckets[indice];
+    tabla->buckets[indice] = nuevo;
+}
+
+
+// -------------------- Buscar elemento --------------------
+Proyecto *buscar(HashTable *tabla, const char *nombre) {
+    unsigned int indice = hash(nombre);
+    Proyecto *actual = tabla->buckets[indice];
+
+    while (actual) {
+        if (strcmp(actual->nombre, nombre) == 0)
+            return actual;
+        actual = actual->siguiente;
+    }
+    return NULL;
+}
+
+// -------------------- Liberar memoria --------------------
 void liberarMapa(struct Paises *lista) {
     if (!lista) return;
 
@@ -289,10 +358,53 @@ void liberarMapa(struct Paises *lista) {
     free(lista);
 }
 
+void liberarTabla(HashTable *tabla) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Proyecto *actual = tabla->buckets[i];
+        while (actual) {
+            Proyecto *tmp = actual;
+
+            free(actual->nombre);
+            free(actual->descripcion);
+            free(actual->bibliografia);
+
+            for (int j = 0; j < actual->numPaises; j++)
+                free(actual->paises[j]);
+            free(actual->paises);
+
+            actual = actual->siguiente;
+            free(tmp);
+        }
+    }
+    free(tabla);
+}
+
+
+
+
 // MAIN
 int main() {
     struct Paises *latam = crearMapaLatinoamerica();
     imprimir_lista(latam);
+    HashTable *tabla = crearTabla();
+
+    char *paises1[] = {"Costa Rica", "Mexico", "Chile"};
+    insertar(tabla, 
+        "Policias", 
+        "Incrementar y mejorar la calidad de la fuerza publica", 
+        "Referencia",
+        paises1, 3
+    );
+    Proyecto *p = buscar(tabla, "Agrotech");
+    if (p) {
+        printf("📘 Proyecto: %s\n", p->nombre);
+        printf("Descripción: %s\n", p->descripcion);
+        printf("Bibliografía: %s\n", p->bibliografia);
+        printf("Países aplicados:\n");
+        for (int i = 0; i < p->numPaises; i++)
+            printf(" - %s\n", p->paises[i]);
+    }
+    liberarTabla(tabla);    
     liberarMapa(latam);
     return 0;
 }
