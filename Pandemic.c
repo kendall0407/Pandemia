@@ -275,10 +275,24 @@ struct Paises* crearMapaLatinoamerica() {
 
     return lista;
 }
+void liberarMapa(struct Paises *lista) {
+    if (!lista) return;
+
+    struct Node *actual = lista->start;
+    while (actual != NULL) {
+        struct Node *temp = actual->sigt;
+        free(actual->aspectos);
+        free(actual->vecinos);
+        free(actual);
+        actual = temp;
+    }
+    free(lista);
+}
 
 // MAIN
 int main() {
     struct Paises *latam = crearMapaLatinoamerica();
     imprimir_lista(latam);
+    liberarMapa(latam);
     return 0;
 }
