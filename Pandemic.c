@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h> 
 
 struct Node {
     char *pais;
@@ -378,6 +379,79 @@ void liberarTabla(HashTable *tabla) {
     }
     free(tabla);
 }
+// -------------------- Elegir Paises y Aspectos Aleatorios--------------------
+int contarPaises(struct Paises *lista) {
+    int contador = 0;
+    struct Node *actual = lista->start;
+    while (actual != NULL) {
+        contador++;
+        actual = actual->sigt;
+    }
+    return contador;
+}
+struct Node* obtenerPaisPorIndice(struct Paises *lista, int indice) {
+    struct Node *actual = lista->start;
+    int i = 0;
+    while (actual != NULL) {
+        if (i == indice) return actual;
+        actual = actual->sigt;
+        i++;
+    }
+    return NULL;
+}
+
+void diagnosticarProblemas(struct Paises *lista) {
+    int total = contarPaises(lista);
+    if (total < 9) {
+        printf("No hay suficientes países para diagnóstico.\n");
+        return;
+    }
+
+    srand(time(NULL)); // semilla aleatoria
+    int usados[9];
+    int usadosCount = 0;
+
+    // Elegir 9 países únicos
+    while (usadosCount < 9) {
+        int randomIndex = rand() % total;
+
+        // verificar que no esté repetido
+        int repetido = 0;
+        for (int i = 0; i < usadosCount; i++) {
+            if (usados[i] == randomIndex) {
+                repetido = 1;
+                break;
+            }
+        }
+        if (!repetido) {
+            usados[usadosCount++] = randomIndex;
+        }
+    }
+
+    // Asignar valores a los países seleccionados
+    for (int i = 0; i < 9; i++) {
+        struct Node *pais = obtenerPaisPorIndice(lista, usados[i]);
+        if (!pais) continue;
+
+        if (i < 3) { // Primer grupo
+            pais->aspectos[0] = 3;
+            pais->aspectos[1] = 2;
+        } else if (i < 6) { // Segundo grupo
+            pais->aspectos[0] = 2;
+            pais->aspectos[1] = 1;
+        } else { // Último grupo
+            for (int j = 0; j < pais->numAspectos; j++)
+                pais->aspectos[j] = 1;
+        }
+
+        printf("🌍 Diagnóstico inicial en %s → ", pais->pais);
+        for (int j = 0; j < pais->numAspectos; j++) {
+            printf("[%d]", pais->aspectos[j]);
+            if (j < pais->numAspectos - 1) printf(" ");
+        }
+        printf("\n");
+    }
+}
 
 
 
@@ -385,26 +459,12 @@ void liberarTabla(HashTable *tabla) {
 // MAIN
 int main() {
     struct Paises *latam = crearMapaLatinoamerica();
-    imprimir_lista(latam);
-    HashTable *tabla = crearTabla();
+    printf("\n🔬 Realizando diagnóstico inicial de problemas...\n\n");
+    diagnosticarProblemas(latam);
 
-    char *paises1[] = {"Costa Rica", "Mexico", "Chile"};
-    insertar(tabla, 
-        "Policias", 
-        "Incrementar y mejorar la calidad de la fuerza publica", 
-        "Referencia",
-        paises1, 3
-    );
-    Proyecto *p = buscar(tabla, "Agrotech");
-    if (p) {
-        printf("📘 Proyecto: %s\n", p->nombre);
-        printf("Descripción: %s\n", p->descripcion);
-        printf("Bibliografía: %s\n", p->bibliografia);
-        printf("Países aplicados:\n");
-        for (int i = 0; i < p->numPaises; i++)
-            printf(" - %s\n", p->paises[i]);
-    }
-    liberarTabla(tabla);    
+    imprimir_lista(latam);
+
     liberarMapa(latam);
     return 0;
 }
+
