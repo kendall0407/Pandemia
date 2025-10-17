@@ -36,7 +36,7 @@ HashTable *crearTabla() {
 }
 
 // -------------------- Insertar elemento --------------------
-void insertar(HashTable *tabla, const char *nombre, const char *descripcion,
+void insertarProyecto(HashTable *tabla, const char *nombre, const char *descripcion,
                       const char *bibliografia, char **paises, int numPaises) {
     unsigned int indice = hash(nombre);
 
@@ -46,7 +46,7 @@ void insertar(HashTable *tabla, const char *nombre, const char *descripcion,
     nuevo->bibliografia = strdup(bibliografia);
 
     nuevo->numPaises = numPaises;
-    nuevo->paises = malloc(numPaises * sizeof(char *));
+    nuevo->paises = calloc(numPaises, sizeof(char *));
     for (int i = 0; i < numPaises; i++)
         nuevo->paises[i] = strdup(paises[i]);
 
@@ -54,9 +54,26 @@ void insertar(HashTable *tabla, const char *nombre, const char *descripcion,
     tabla->buckets[indice] = nuevo;
 }
 
+//-------------------- Agregar Pais --------------------
+void agregarPais(char ***lista, int *cantidad, const char *nuevoPais) {
+    if (lista == NULL || cantidad == NULL || nuevoPais == NULL) {
+        printf("Error, punteros inválidos en agregarPais\n");
+        return;
+    }
+
+    char **tmp = realloc(*lista, (*cantidad + 1) * sizeof(char *));
+    if (tmp == NULL) {
+        printf("Error al asignar memoria para los países\n");
+        return;
+    }
+
+    *lista = tmp;
+    (*lista)[*cantidad] = strdup(nuevoPais);
+    (*cantidad)++;
+}
 
 // -------------------- Buscar elemento --------------------
-Proyecto *buscar(HashTable *tabla, const char *nombre) {
+Proyecto *buscarProyecto(HashTable *tabla, const char *nombre) {
     unsigned int indice = hash(nombre);
     Proyecto *actual = tabla->buckets[indice];
 
@@ -68,41 +85,7 @@ Proyecto *buscar(HashTable *tabla, const char *nombre) {
     return NULL;
 }
 
-// -------------------- Liberar memoria --------------------
-void liberarMapa(struct Paises *lista) {
-    if (!lista) return;
 
-    struct Node *actual = lista->start;
-    while (actual != NULL) {
-        struct Node *temp = actual->sigt;
-        free(actual->aspectos);
-        free(actual->vecinos);
-        free(actual);
-        actual = temp;
-    }
-    free(lista);
-}
-
-void liberarTabla(HashTable *tabla) {
-    for (int i = 0; i < TABLE_SIZE; i++) {
-        Proyecto *actual = tabla->buckets[i];
-        while (actual) {
-            Proyecto *tmp = actual;
-
-            free(actual->nombre);
-            free(actual->descripcion);
-            free(actual->bibliografia);
-
-            for (int j = 0; j < actual->numPaises; j++)
-                free(actual->paises[j]);
-            free(actual->paises);
-
-            actual = actual->siguiente;
-            free(tmp);
-        }
-    }
-    free(tabla);
-}
 
 
 struct Node {
@@ -453,50 +436,180 @@ void diagnosticarProblemas(struct Paises *lista) {
     }
 }
 
-struct Paises *buscarVecino(struct Node *pais, int posicion) {
-	return (pais->vecinos[posicion]);
+struct Node *paisAleatorio(struct Paises *lista){
+	int total = contarPaises(lista);
+	srand(time(NULL));
+	int i = rand() % total;
+	return obtenerPaisPorIndice(lista, i);
 }
-void inicio(struct Node *pais) {
+
+
+int ejecucion(struct Node *pais) {
 	int seleccion = 0;
 	int seleccionPais = 0;
 	printf("Que deseas hacer?\n1. Viajar\n2. Implementar proyecto\n(Presione 1 o 2): ");
 	if (scanf("%d", &seleccion) != 1){
 		printf("Error, parametros incorrectos\n");
-		//repetir pregunta
+		return -1;
 	} else {
 		if (seleccion == 1) {
-			imprimir_vecinos(pais);
-			printf("Escoga el pais al que quiere viajar\n");
-			scanf("%d", seleccionPais);
-			paisFrontera = buscarVecino(pais, seleccionPais);
-			//Actualizar que viajo
+			return 1;
+			
 		} else if (seleccion == 2){
+			return 2;
 			
 		} else {
 			printf("Error, numero no valido (1 o 2 solo)\n");
-			//igual
+			return -1;
 		}
 	}
+}
+
+struct Node *viajar(struct Node *pais) {
+	int seleccionPais = 0;
+	imprimir_vecinos(pais);
+	printf("Escoga el pais al que quiere viajar\n");
+	scanf("%d", &seleccionPais);
+	return pais->vecinos[seleccionPais];
+}
+// -------------------- Liberar memoria --------------------
+void liberarMapa(struct Paises *lista) {
+    if (!lista) return;
+
+    struct Node *actual = lista->start;
+    while (actual != NULL) {
+        struct Node *temp = actual->sigt;
+        free(actual->aspectos);
+        free(actual->vecinos);
+        free(actual);
+        actual = temp;
+    }
+    free(lista);
+}
+
+void liberarTabla(HashTable *tabla) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        Proyecto *actual = tabla->buckets[i];
+        while (actual) {
+            Proyecto *tmp = actual;
+
+            free(actual->nombre);
+            free(actual->descripcion);
+            free(actual->bibliografia);
+
+            for (int j = 0; j < actual->numPaises; j++)
+                free(actual->paises[j]);
+            free(actual->paises);
+
+            actual = actual->siguiente;
+            free(tmp);
+        }
+    }
+    free(tabla);
 }
 
 // MAIN
 int main() {
     struct Paises *latam = crearMapaLatinoamerica();
     printf("\n🔬 Realizando diagnóstico inicial de problemas...\n\n");
-    diagnosticarProblemas(latam);
-	HashTable *tabla = crearTabla();
-	//conforme se vayan aplicando proyectos se suman contadores en la hash
+    //diagnosticarProblemas(latam);
 	
+	HashTable *tabla = crearTabla();
+	int tamaño = contarPaises(latam);
+	
+	//Paises donde se van implementando los proyectos
+	char **paisesP1 = NULL;
+	char **paisesP2 = NULL;
+	char **paisesP3 = NULL;
+	char **paisesP4 = NULL;
+	char **paisesP5 = NULL;
+	
+	int numP1 = 0, numP2 = 0, numP3 = 0, numP4 = 0, numP5 = 0;
+	
+	//Problematica Princial: Crimen Organizado
+	//Aspectos: Asesinatos, Robos, Narcotrafico, Extorsion y Secuestro, Corrupcion
+	//1 Proyecto
+	insertarProyecto(tabla, "Centros comunitarios juveniles", 
+		"Crear centros comunitarios enfocados a proporcionar un entorno seguro y talleres de diversas areas",
+        "Ott, C. (2020). Centros para la juventud: espacios para el desarrollo de habilidades físicas, sociales, emocionales y cognitivas. arch daily. https://www.archdaily.cl/cl/945587/centros-para-la-juventud-espacios-para-el-desarrollo-de-habilidades-fisicas-sociales-emocionales-y-cognitivas",
+         paisesP1, numP1);
+         
+    //2 Proyecto
+	insertarProyecto(tabla, "Rediseño urbano con seguridad aumentada", 
+		"Realizar cambios y agregar nueva tecnologia capaz de mejorar la visibilidad y reducir las oportunidades de un delito",
+        "Bibliografia",
+         paisesP2, numP2);
+         
+    //3 Proyecto
+	insertarProyecto(tabla, "Programa de reinsercion laboral", 
+		"Realizar cambios y agregar nueva tecnologia capaz de mejorar la visibilidad y reducir las oportunidades de un delito",
+        "Bibliografia",
+         paisesP3, numP3);
+         
+    //4 Proyecto
+	insertarProyecto(tabla, "Tecnologia y seguridad policial", 
+		"Implementar tecnologias capaces de identificar y rastrear, ademas de aumentar el servicio policial",
+        "Bibliografia",
+         paisesP4, numP4);
+         
+    //5 Proyecto
+	insertarProyecto(tabla, "Plataformas de transparencia", 
+		"Plataformas para los ciudadanos donde es posible realizar solicitudes de información a los distintos organismos y sus integrantes",
+        "Bibliografia",
+         paisesP5, numP5);
+         
+    Proyecto *proyecto1 = buscarProyecto(tabla, "Centros comunitarios juveniles");     
+    Proyecto *proyecto2 = buscarProyecto(tabla, "Rediseño urbano con seguridad aumentada");   
+    Proyecto *proyecto3 = buscarProyecto(tabla, "Programa de reinsercion laboral");   
+    Proyecto *proyecto4 = buscarProyecto(tabla, "Tecnologia y seguridad policial");   
+    Proyecto *proyecto5 = buscarProyecto(tabla, "Plataformas de transparencia");   
+         
+		
+        
     imprimir_lista(latam);
     
-    //falta
-    //-hacer seleccion de pais aleatorio
-    //-tambien que por cada turno se aumente en 1, el aspecto en 3 paises aleatorios
-    //-aplicar proyecto
-	printf("Bienvenido, jugador 1, en este momento estas en: %s", pais->pais);
+    
+    struct Node *paisJ1 = paisAleatorio(latam);
+    struct Node *paisJ2 = paisAleatorio(latam);
+	printf("Bienvenido, jugador 1, en este momento estas en: %s\n", paisJ1->pais);
+	int seleccionPais = ejecucion(paisJ1);
 	
+	if (seleccionPais==1) {
+		paisJ1 = viajar(paisJ1);
+	} else if (seleccionPais==2) {
+		printf("\nCual proyecto desea aplicar?\n");
+		if (scanf("%d", &seleccionPais) != 1) {
+			printf("Error, entrada inválida\n");
+			return -1;
+		}
+	//agregarle el pais al array del proyecto
+
+		switch (seleccionPais) {
+			case 1:
+				agregarPais(&paisesP1, &(proyecto1->numPaises), paisJ1->pais);
+				break;
+			case 2:
+				agregarPais(&paisesP2, &(proyecto2->numPaises), paisJ1->pais);
+				break;
+			case 3:
+				agregarPais(&paisesP3, &(proyecto3->numPaises), paisJ1->pais);
+				break;
+			case 4:
+				agregarPais(&paisesP4, &(proyecto4->numPaises), paisJ1->pais);
+				break;
+			case 5:
+				agregarPais(&paisesP5, &(proyecto5->numPaises), paisJ1->pais);
+				break;
+			default:
+				printf("Error, parámetro inválido.\n");
+				return -1;
+		}
+	}
+	
+
+         
     liberarMapa(latam);
-    liberarTabla();
+    liberarTabla(tabla);
     return 0;
 }
 
