@@ -84,10 +84,30 @@ Proyecto *buscarProyecto(HashTable *tabla, const char *nombre) {
     }
     return NULL;
 }
+// -------------------- Agrega Pais al Proyecto --------------------
+void agregarPaisAProyecto(Proyecto *proyecto, const char *nuevoPais) {
+    if (proyecto == NULL || nuevoPais == NULL) {
+        printf("❌ Error: punteros nulos en agregarPaisAProyecto\n");
+        return;
+    }
+
+    // Aumentar tamaño del arreglo de países
+    char **nuevaLista = realloc(proyecto->paises, (proyecto->numPaises + 1) * sizeof(char *));
+    if (nuevaLista == NULL) {
+        printf("❌ Error al reasignar memoria para países del proyecto %s\n", proyecto->nombre);
+        return;
+    }
+
+    proyecto->paises = nuevaLista;
+    proyecto->paises[proyecto->numPaises] = strdup(nuevoPais);
+    proyecto->numPaises++;
+
+    printf("✅ País agregado al proyecto '%s': %s\n", proyecto->nombre, nuevoPais);
+}
 
 
 
-
+// -------------------- Buscar elemento --------------------
 struct Node {
     char *pais;				// nombre de pais
     int *aspectos;          // valores de los aspectos
@@ -104,7 +124,7 @@ struct Paises {
     struct Node *start;
 };
 
-// Crear lista
+// -------------------- Crea Lista de Paises--------------------
 struct Paises *crearPaises() {
     struct Paises *newList = calloc(1, sizeof(struct Paises));
     if (newList == NULL) {
@@ -113,14 +133,14 @@ struct Paises *crearPaises() {
     return newList;
 }
 
-// Crear un país
+// -------------------- Crea Pais--------------------
 struct Node* createNewNode(char* pais, int numAspectos) {
     struct Node *newNode = calloc(1, sizeof(struct Node));
     if (newNode == NULL) {
         printf("Error creando un nodo\n");
         return NULL;
     }
-    newNode->pais = pais;
+    newNode->pais = strdup(pais);
     newNode->aspectos = calloc(numAspectos, sizeof(int));
     newNode->numAspectos = numAspectos;
 
@@ -132,20 +152,20 @@ struct Node* createNewNode(char* pais, int numAspectos) {
     return newNode;
 }
 
-// Agregar vecino a un país
+// --------------------Agrega Vecino a Pais--------------------
 void agregarVecino(struct Node *pais, struct Node *nuevoVecino) {
     pais->numVecinos++;
     pais->vecinos = realloc(pais->vecinos, pais->numVecinos * sizeof(struct Node *));
     pais->vecinos[pais->numVecinos - 1] = nuevoVecino;
 }
 
-// Conectar dos países (bidireccionalmente)
+// -------------------- Conecta Paises  --------------------
 void conectarPaises(struct Node *a, struct Node *b) {
     agregarVecino(a, b);
     agregarVecino(b, a);
 }
 
-// Insertar país al final de la lista
+// -------------------- Inserta al Final --------------------
 int insertar_final(struct Paises *lista, char *elemento, int numAspectos) {
     if (lista == NULL) {
         printf("No es lista valida\n");
@@ -169,7 +189,7 @@ int insertar_final(struct Paises *lista, char *elemento, int numAspectos) {
     return 0;
 }
 
-// Buscar país por nombre
+// -------------------- Busca Pais --------------------
 struct Node* buscarPais(struct Paises *lista, char *nombre) {
     struct Node *current = lista->start;
     while (current != NULL) {
@@ -180,7 +200,13 @@ struct Node* buscarPais(struct Paises *lista, char *nombre) {
     return NULL;
 }
 
-// Imprimir lista de países
+// -------------------- Imprime Lista --------------------
+/*  COLORES 
+    printf("\033[31mEste texto es rojo\033[0m\n");
+    printf("\033[32mEste texto es verde\033[0m\n");
+    printf("\033[33mEste texto es amarillo\033[0m\n");
+    printf("\033[34mEste texto es azul\033[0m\n");
+*/     
 void imprimir_lista(struct Paises *lista) {
     if (lista == NULL || lista->start == NULL) {
         printf("⚠️  No hay países en la lista.\n");
@@ -191,7 +217,7 @@ void imprimir_lista(struct Paises *lista) {
     printf("\n🌎 ====== ESTADO ACTUAL DEL MAPA DE AMÉRICA LATINA ======\n\n");
 
     while (actual != NULL) {
-        printf("🗺️  País: %s\n", actual->pais);
+        printf("\033[31m🗺️  País: %s\033[0m\n", actual->pais);
 
         // Mostrar país anterior y siguiente
         if (actual->ant)
@@ -231,7 +257,7 @@ void imprimir_lista(struct Paises *lista) {
     printf("\n✅ Fin de la lista de países.\n\n");
 }
 
-// Imprimir vecinos de un país
+// -------------------- Imprime Vecinos de un Pais --------------------
 void imprimir_vecinos(struct Node *pais) {
     printf("Vecinos de %s:\n", pais->pais);
     for (int i = 0; i < pais->numVecinos; i++) {
@@ -241,6 +267,7 @@ void imprimir_vecinos(struct Node *pais) {
         printf(" (Sin vecinos registrados)\n");
     printf("\n");
 }
+// -------------------- Crea el Mapa de LATAM --------------------
 struct Paises* crearMapaLatinoamerica() {
     struct Paises *lista = crearPaises();
 
@@ -279,85 +306,56 @@ struct Paises* crearMapaLatinoamerica() {
     struct Node *sur = buscarPais(lista, "Surinam");
     struct Node *bel = buscarPais(lista, "Belice");
 
-    // 🔗 Conexiones geográficas
-    conectarPaises(arg, chi);
-    conectarPaises(arg, bol);
-    conectarPaises(arg, par);
-    conectarPaises(arg, uru);
+        // 🔗 Conexiones geográficas (sin duplicados)
+        conectarPaises(arg, chi);
+        conectarPaises(arg, bol);
+        conectarPaises(arg, par);
+        conectarPaises(arg, uru);
 
-    conectarPaises(bol, arg);
-    conectarPaises(bol, par);
-    conectarPaises(bol, per);
-    conectarPaises(bol, bra);
-    conectarPaises(bol, chi);
+        conectarPaises(bol, par);
+        conectarPaises(bol, per);
+        conectarPaises(bol, bra);
+        conectarPaises(bol, chi);
 
-    conectarPaises(bra, arg);
-    conectarPaises(bra, uru);
-    conectarPaises(bra, par);
-    conectarPaises(bra, bol);
-    conectarPaises(bra, per);
-    conectarPaises(bra, ven);
-    conectarPaises(bra, guy);
-    conectarPaises(bra, sur);
+        conectarPaises(bra, per);
+        conectarPaises(bra, ven);
+        conectarPaises(bra, guy);
+        conectarPaises(bra, sur);
+        conectarPaises(bra, par);
+        conectarPaises(bra, uru);
 
-    conectarPaises(chi, arg);
-    conectarPaises(chi, bol);
-    conectarPaises(chi, per);
+        conectarPaises(chi, per);
 
-    conectarPaises(per, chi);
-    conectarPaises(per, bol);
-    conectarPaises(per, ecu);
-    conectarPaises(per, bra);
-    conectarPaises(per, col);
+        conectarPaises(per, ecu);
+        conectarPaises(per, col);
 
-    conectarPaises(ecu, per);
-    conectarPaises(ecu, col);
+        conectarPaises(ecu, col);
 
-    conectarPaises(col, ecu);
-    conectarPaises(col, ven);
-    conectarPaises(col, pan);
-    conectarPaises(col, per);
-    conectarPaises(col, bra);
+        conectarPaises(col, ven);
+        conectarPaises(col, pan);
+        conectarPaises(col, bra);
 
-    conectarPaises(pan, col);
-    conectarPaises(pan, crc);
+        conectarPaises(pan, crc);
 
-    conectarPaises(crc, pan);
-    conectarPaises(crc, nic);
+        conectarPaises(crc, nic);
 
-    conectarPaises(nic, crc);
-    conectarPaises(nic, hon);
+        conectarPaises(nic, hon);
 
-    conectarPaises(hon, nic);
-    conectarPaises(hon, sal);
-    conectarPaises(hon, gua);
+        conectarPaises(hon, sal);
+        conectarPaises(hon, gua);
 
-    conectarPaises(sal, hon);
-    conectarPaises(sal, gua);
+        conectarPaises(sal, gua);
 
-    conectarPaises(gua, sal);
-    conectarPaises(gua, mex);
-    conectarPaises(gua, bel);
+        conectarPaises(gua, mex);
+        conectarPaises(gua, bel);
 
-    conectarPaises(bel, gua);
-    conectarPaises(bel, mex);
+        conectarPaises(bel, mex);
 
-    conectarPaises(mex, gua);
-    conectarPaises(mex, bel);
+        conectarPaises(ven, guy);
 
-    conectarPaises(ven, col);
-    conectarPaises(ven, bra);
-    conectarPaises(ven, guy);
+        conectarPaises(guy, sur);
 
-    conectarPaises(guy, ven);
-    conectarPaises(guy, sur);
-    conectarPaises(guy, bra);
-
-    conectarPaises(sur, guy);
-    conectarPaises(sur, bra);
-
-    conectarPaises(uru, arg);
-    conectarPaises(uru, bra);
+        conectarPaises(uru, par);
 
     return lista;
 }
@@ -372,6 +370,7 @@ int contarPaises(struct Paises *lista) {
     }
     return contador;
 }
+// -------------------- Busca el Pais por indice --------------------
 struct Node* obtenerPaisPorIndice(struct Paises *lista, int indice) {
     struct Node *actual = lista->start;
     int i = 0;
@@ -382,7 +381,7 @@ struct Node* obtenerPaisPorIndice(struct Paises *lista, int indice) {
     }
     return NULL;
 }
-
+// -------------------- Agregar Problemas Random --------------------
 void diagnosticarProblemas(struct Paises *lista) {
     int total = contarPaises(lista);
     if (total < 9) {
@@ -435,7 +434,138 @@ void diagnosticarProblemas(struct Paises *lista) {
         printf("\n");
     }
 }
+//  Aumentar aleatoriamente las problemáticas en algunos países
+void aumentarProblemasAleatorios(struct Paises *lista) {
+    srand(time(NULL));
+    struct Node *actual = lista->start;
 
+    while (actual != NULL) {
+        // 30% de probabilidad de aumentar un aspecto
+        if ((rand() % 100) < 30) {
+            int indice = rand() % actual->numAspectos;
+            if (actual->aspectos[indice] < 3) {
+                actual->aspectos[indice]++;
+                printf("⚠️  Aumenta problema en %s (aspecto %d → %d)\n",
+                       actual->pais, indice + 1, actual->aspectos[indice]);
+            }
+        }
+        actual = actual->sigt;
+    }
+}
+
+// Expandir problemáticas a vecinos si algún país llega a nivel 3
+void expandirProblemas(struct Paises *lista) {
+    struct Node *actual = lista->start;
+
+    while (actual != NULL) {
+        for (int i = 0; i < actual->numAspectos; i++) {
+            if (actual->aspectos[i] >= 3) {
+                // Infectar a los vecinos
+                for (int j = 0; j < actual->numVecinos; j++) {
+                    struct Node *vecino = actual->vecinos[j];
+                    int aspectoAfectado = rand() % vecino->numAspectos;
+
+                    if (vecino->aspectos[aspectoAfectado] < 3) {
+                        vecino->aspectos[aspectoAfectado]++;
+                        printf("🦠 Expansión de %s → %s (aspecto %d sube a %d)\n",
+                               actual->pais, vecino->pais,
+                               aspectoAfectado + 1,
+                               vecino->aspectos[aspectoAfectado]);
+                    }
+                }
+            }
+        }
+        actual = actual->sigt;
+    }
+}
+//  Eliminar países con todos los aspectos al máximo
+void eliminarPaisesColapsados(struct Paises *lista) {
+    struct Node *actual = lista->start;
+
+    while (actual != NULL) {
+        int colapsado = 1;
+        for (int i = 0; i < actual->numAspectos; i++) {
+            if (actual->aspectos[i] < 3) {
+                colapsado = 0;
+                break;
+            }
+        }
+
+        if (colapsado) {
+            printf("💀 %s ha colapsado completamente.\n", actual->pais);
+
+            // desconectar vecinos
+            for (int i = 0; i < actual->numVecinos; i++) {
+                struct Node *vecino = actual->vecinos[i];
+                for (int j = 0; j < vecino->numVecinos; j++) {
+                    if (vecino->vecinos[j] == actual) {
+                        for (int k = j; k < vecino->numVecinos - 1; k++)
+                            vecino->vecinos[k] = vecino->vecinos[k + 1];
+                        vecino->numVecinos--;
+                        break;
+                    }
+                }
+            }
+
+            // eliminar nodo de la lista
+            struct Node *temp = actual;
+            if (actual->ant) actual->ant->sigt = actual->sigt;
+            if (actual->sigt) actual->sigt->ant = actual->ant;
+            if (lista->start == actual) lista->start = actual->sigt;
+
+            actual = actual->sigt;
+
+            free(temp->aspectos);
+            free(temp->vecinos);
+            free(temp->pais);
+            free(temp);
+        } else {
+            actual = actual->sigt;
+        }
+    }
+}
+// Verificar condiciones de victoria o derrota
+int verificarEstadoJuego(struct Paises *lista) {
+    int paisesTotales = 0;
+    int paisesColapsados = 0;
+    int paisesEstables = 0;
+    struct Node *actual = lista->start;
+
+    while (actual != NULL) {
+        paisesTotales++;
+        int colapsado = 1;
+        int estable = 1;
+
+        for (int i = 0; i < actual->numAspectos; i++) {
+            if (actual->aspectos[i] < 3)
+                colapsado = 0; // no colapsado
+
+            if (actual->aspectos[i] > 1)
+                estable = 0; // no estable
+        }
+
+        if (colapsado) paisesColapsados++;
+        if (estable) paisesEstables++;
+
+        actual = actual->sigt;
+    }
+
+    if (paisesTotales == 0) return -1; // todos eliminados, derrota total
+
+    if (paisesColapsados == paisesTotales) {
+        printf("\n💀 Todos los países colapsaron. ¡Fin del juego!\n");
+        return -1; // derrota
+    }
+
+    if (paisesEstables == paisesTotales) {
+        printf("\n🏆 Todos los países están estables. ¡Has ganado!\n");
+        return 1; // victoria
+    }
+
+    return 0; // sigue el juego
+}
+
+// -------------------- Da un pais Random --------------------
 struct Node *paisAleatorio(struct Paises *lista){
 	int total = contarPaises(lista);
 	srand(time(NULL));
@@ -443,11 +573,11 @@ struct Node *paisAleatorio(struct Paises *lista){
 	return obtenerPaisPorIndice(lista, i);
 }
 
-
+// -------------------- Pregunta Que Quiere Hacer --------------------
 int ejecucion(struct Node *pais) {
 	int seleccion = 0;
 	int seleccionPais = 0;
-	printf("Que deseas hacer?\n1. Viajar\n2. Implementar proyecto\n(Presione 1 o 2): ");
+	printf("Que deseas hacer?\n1. Viajar\n2. Implementar proyecto\n3. Ver informacion de paises \n4. Salir\n(Presione 1,2,3 o 4): ");
 	if (scanf("%d", &seleccion) != 1){
 		printf("Error, parametros incorrectos\n");
 		return -1;
@@ -458,12 +588,20 @@ int ejecucion(struct Node *pais) {
 		} else if (seleccion == 2){
 			return 2;
 			
-		} else {
+		} else if (seleccion == 3){
+            return 3;
+
+        }else if (seleccion == 4){
+            return 4;
+            
+        }
+        else {
 			printf("Error, numero no valido (1 o 2 solo)\n");
 			return -1;
 		}
 	}
 }
+// -------------------- Viaja de Un Pais a OTro vecino --------------------
 
 struct Node *viajar(struct Node *pais) {
 	int seleccionPais = 0;
@@ -481,11 +619,13 @@ void liberarMapa(struct Paises *lista) {
         struct Node *temp = actual->sigt;
         free(actual->aspectos);
         free(actual->vecinos);
+        free(actual->pais);
         free(actual);
         actual = temp;
     }
     free(lista);
 }
+// -------------------- Libera Memoria De Tabla --------------------
 
 void liberarTabla(HashTable *tabla) {
     for (int i = 0; i < TABLE_SIZE; i++) {
@@ -507,109 +647,161 @@ void liberarTabla(HashTable *tabla) {
     }
     free(tabla);
 }
+// -------------------- Maneja el Turno del Jugador --------------------
+int turnoJugador(int numeroJugador, struct Node **paisActual, 
+                 Proyecto *p1, Proyecto *p2, Proyecto *p3, Proyecto *p4, Proyecto *p5,
+                 struct Paises *mapa) {
+    printf("\n====================\n");
+    printf("🎮 Turno del Jugador %d\n", numeroJugador);
+    printf("Actualmente estás en: %s\n", (*paisActual)->pais);
+    printf("====================\n");
+
+    int accion = 1;
+    while (accion <= 4) {
+        printf("\n🌀 Acción %d de 4\n", accion);
+        int eleccion = ejecucion(*paisActual);
+
+        if (eleccion == 1) {
+            // VIAJAR
+            *paisActual = viajar(*paisActual);
+            printf("🚶 Viajaste a: %s\n", (*paisActual)->pais);
+            accion++;  // gastar acción
+        } 
+        else if (eleccion == 2) {
+            // APLICAR PROYECTO
+            int seleccionProyecto = 0;
+            printf("\nCual proyecto desea aplicar?\n");
+            printf("1. Centros comunitarios juveniles\n");
+            printf("2. Rediseño urbano con seguridad aumentada\n");
+            printf("3. Programa de reinsercion laboral\n");
+            printf("4. Tecnologia y seguridad policial\n");
+            printf("5. Plataformas de transparencia\n");
+            printf("Seleccione (1-5): ");
+
+            if (scanf("%d", &seleccionProyecto) != 1) {
+                printf("❌ Entrada inválida.\n");
+                while (getchar() != '\n'); // limpiar buffer
+                continue;
+            }
+
+            // Bajar nivel de problemáticas
+            if (seleccionProyecto >= 1 && seleccionProyecto <= (*paisActual)->numAspectos) {
+                if ((*paisActual)->aspectos[seleccionProyecto - 1] > 0) {
+                    (*paisActual)->aspectos[seleccionProyecto - 1]--;
+                    printf("📉 Problemas reducidos en %s\n", (*paisActual)->pais);
+                } else {
+                    printf("⚪ Ese aspecto ya está en su nivel mínimo.\n");
+                }
+
+                // Asociar país al proyecto
+                switch (seleccionProyecto) {
+                    case 1: agregarPaisAProyecto(p1, (*paisActual)->pais); break;
+                    case 2: agregarPaisAProyecto(p2, (*paisActual)->pais); break;
+                    case 3: agregarPaisAProyecto(p3, (*paisActual)->pais); break;
+                    case 4: agregarPaisAProyecto(p4, (*paisActual)->pais); break;
+                    case 5: agregarPaisAProyecto(p5, (*paisActual)->pais); break;
+                }
+            } else {
+                printf("❌ Número de proyecto inválido.\n");
+                continue;
+            }
+
+            accion++;  // gastar acción
+        }
+        else if (eleccion == 3) {
+            // VER INFORMACIÓN — NO GASTA TURNO
+            printf("\n📊 Información actual del mapa:\n");
+            imprimir_lista(mapa);
+            printf("🔁 Esta acción no consume turno.\n");
+            continue;  // no incrementar acción
+        }
+        else if (eleccion == 4) {
+            // SALIR DEL JUEGO
+            printf("\n🚪 El jugador %d decidió salir del juego.\n", numeroJugador);
+            return -1; // señal para terminar juego
+        }
+        else {
+            printf("⚠️ Acción inválida. Se pierde esta acción.\n");
+            accion++;  // igual gasta turno
+        }
+    }
+
+    return 0; // turno completado normalmente
+}
+
 
 // MAIN
 int main() {
+    srand(time(NULL)); // semilla única
     struct Paises *latam = crearMapaLatinoamerica();
+
     printf("\n🔬 Realizando diagnóstico inicial de problemas...\n\n");
-    //diagnosticarProblemas(latam);
-	
-	HashTable *tabla = crearTabla();
-	int tamaño = contarPaises(latam);
-	
-	//Paises donde se van implementando los proyectos
-	char **paisesP1 = NULL;
-	char **paisesP2 = NULL;
-	char **paisesP3 = NULL;
-	char **paisesP4 = NULL;
-	char **paisesP5 = NULL;
-	
-	int numP1 = 0, numP2 = 0, numP3 = 0, numP4 = 0, numP5 = 0;
-	
-	//Problematica Princial: Crimen Organizado
-	//Aspectos: Asesinatos, Robos, Narcotrafico, Extorsion y Secuestro, Corrupcion
-	//1 Proyecto
-	insertarProyecto(tabla, "Centros comunitarios juveniles", 
-		"Crear centros comunitarios enfocados a proporcionar un entorno seguro y talleres de diversas areas",
-        "Ott, C. (2020). Centros para la juventud: espacios para el desarrollo de habilidades físicas, sociales, emocionales y cognitivas. arch daily. https://www.archdaily.cl/cl/945587/centros-para-la-juventud-espacios-para-el-desarrollo-de-habilidades-fisicas-sociales-emocionales-y-cognitivas",
-         paisesP1, numP1);
-         
-    //2 Proyecto
-	insertarProyecto(tabla, "Rediseño urbano con seguridad aumentada", 
-		"Realizar cambios y agregar nueva tecnologia capaz de mejorar la visibilidad y reducir las oportunidades de un delito",
-        "Bibliografia",
-         paisesP2, numP2);
-         
-    //3 Proyecto
-	insertarProyecto(tabla, "Programa de reinsercion laboral", 
-		"Realizar cambios y agregar nueva tecnologia capaz de mejorar la visibilidad y reducir las oportunidades de un delito",
-        "Bibliografia",
-         paisesP3, numP3);
-         
-    //4 Proyecto
-	insertarProyecto(tabla, "Tecnologia y seguridad policial", 
-		"Implementar tecnologias capaces de identificar y rastrear, ademas de aumentar el servicio policial",
-        "Bibliografia",
-         paisesP4, numP4);
-         
-    //5 Proyecto
-	insertarProyecto(tabla, "Plataformas de transparencia", 
-		"Plataformas para los ciudadanos donde es posible realizar solicitudes de información a los distintos organismos y sus integrantes",
-        "Bibliografia",
-         paisesP5, numP5);
-         
-    Proyecto *proyecto1 = buscarProyecto(tabla, "Centros comunitarios juveniles");     
-    Proyecto *proyecto2 = buscarProyecto(tabla, "Rediseño urbano con seguridad aumentada");   
-    Proyecto *proyecto3 = buscarProyecto(tabla, "Programa de reinsercion laboral");   
-    Proyecto *proyecto4 = buscarProyecto(tabla, "Tecnologia y seguridad policial");   
-    Proyecto *proyecto5 = buscarProyecto(tabla, "Plataformas de transparencia");   
-         
-		
-        
-    imprimir_lista(latam);
-    
-    
+    diagnosticarProblemas(latam);
+
+    HashTable *tabla = crearTabla();
+
+    insertarProyecto(tabla, "Centros comunitarios juveniles", 
+        "Crear centros comunitarios enfocados a proporcionar un entorno seguro.",
+        "Ott, C. (2020). ArchDaily.", NULL, 0);
+
+    insertarProyecto(tabla, "Rediseño urbano con seguridad aumentada", 
+        "Realizar cambios urbanos e instalar nueva tecnología.",
+        "Fuentes, L. (2019).", NULL, 0);
+
+    insertarProyecto(tabla, "Programa de reinsercion laboral", 
+        "Reinserción social y laboral de personas en riesgo.",
+        "Ministerio de Justicia (2021).", NULL, 0);
+
+    insertarProyecto(tabla, "Tecnologia y seguridad policial", 
+        "Tecnologías de rastreo y análisis predictivo.",
+        "García, A. (2022).", NULL, 0);
+
+    insertarProyecto(tabla, "Plataformas de transparencia", 
+        "Portales digitales de consulta ciudadana.",
+        "Transparencia Internacional (2020).", NULL, 0);
+
+    Proyecto *p1 = buscarProyecto(tabla, "Centros comunitarios juveniles");
+    Proyecto *p2 = buscarProyecto(tabla, "Rediseño urbano con seguridad aumentada");
+    Proyecto *p3 = buscarProyecto(tabla, "Programa de reinsercion laboral");
+    Proyecto *p4 = buscarProyecto(tabla, "Tecnologia y seguridad policial");
+    Proyecto *p5 = buscarProyecto(tabla, "Plataformas de transparencia");
+
+    // Jugadores
     struct Node *paisJ1 = paisAleatorio(latam);
     struct Node *paisJ2 = paisAleatorio(latam);
-	printf("Bienvenido, jugador 1, en este momento estas en: %s\n", paisJ1->pais);
-	int seleccionPais = ejecucion(paisJ1);
-	
-	if (seleccionPais==1) {
-		paisJ1 = viajar(paisJ1);
-	} else if (seleccionPais==2) {
-		printf("\nCual proyecto desea aplicar?\n");
-		if (scanf("%d", &seleccionPais) != 1) {
-			printf("Error, entrada inválida\n");
-			return -1;
-		}
-	//agregarle el pais al array del proyecto
 
-		switch (seleccionPais) {
-			case 1:
-				agregarPais(&paisesP1, &(proyecto1->numPaises), paisJ1->pais);
-				break;
-			case 2:
-				agregarPais(&paisesP2, &(proyecto2->numPaises), paisJ1->pais);
-				break;
-			case 3:
-				agregarPais(&paisesP3, &(proyecto3->numPaises), paisJ1->pais);
-				break;
-			case 4:
-				agregarPais(&paisesP4, &(proyecto4->numPaises), paisJ1->pais);
-				break;
-			case 5:
-				agregarPais(&paisesP5, &(proyecto5->numPaises), paisJ1->pais);
-				break;
-			default:
-				printf("Error, parámetro inválido.\n");
-				return -1;
-		}
-	}
-	
+    printf("\n🎮 Jugador 1 empieza en: %s\n", paisJ1->pais);
+    printf("🎮 Jugador 2 empieza en: %s\n", paisJ2->pais);
 
-         
+    //  Turnos alternados
+    for (int ronda = 1; ronda <= 10; ronda++) {     // máximo 10 rondas
+        printf("\n==============================\n");
+        printf("🔁 RONDA %d\n", ronda);
+        printf("==============================\n");
+    if (turnoJugador(1, &paisJ1, p1, p2, p3, p4, p5, latam) == -1) break;
+    if (turnoJugador(2, &paisJ2, p1, p2, p3, p4, p5, latam) == -1) break;
+
+
+        printf("\n🌡️  Fin de la ronda: aplicando efectos...\n");
+        aumentarProblemasAleatorios(latam);
+        expandirProblemas(latam);
+        eliminarPaisesColapsados(latam);
+
+        int estado = verificarEstadoJuego(latam);
+        if (estado != 0) break;     // gana o pierde
+    }
+    //  Fin de turno
+    printf("\n🌡️  Fin de la ronda, aplicando expansión y aumento aleatorio...\n");
+    aumentarProblemasAleatorios(latam);
+    expandirProblemas(latam);
+
+
+    //  Limpieza
     liberarMapa(latam);
     liberarTabla(tabla);
+    printf("\n✅ Fin del juego. Gracias por jugar.\n");
     return 0;
 }
+
+
 
