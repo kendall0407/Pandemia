@@ -405,26 +405,25 @@ struct Paises* crearMapaLatinoamerica() {
 
 	conectarPaises(par, bol);
 	conectarPaises(par, sur);
-	conectarPaises(par, crc);   // agregado para evitar duplicado (en lugar de arg)
+	conectarPaises(par, crc);   
 	
-	conectarPaises(cub, pr);   // Costa Rica
-	conectarPaises(cub, mex);   // Mexico
-	conectarPaises(cub, gua);   // Guatemala
+	conectarPaises(cub, pr);   
+	conectarPaises(cub, mex);   
+	conectarPaises(cub, gua);  
 
-	// República Dominicana
-	conectarPaises(dom, col);   // Colombia
-	conectarPaises(dom, crc);   // Venezuela
-	conectarPaises(dom, per);   // Peru
 
-	// Puerto Rico
-	conectarPaises(pr, crc);    // Panama
-	conectarPaises(pr, ecu);    // Ecuador
-	conectarPaises(pr, arg);    // Argentina
+	conectarPaises(dom, col);  
+	conectarPaises(dom, crc);  
+	conectarPaises(dom, per);  
 
-	// Haití
-	conectarPaises(hti, sur);   // Venezuela
-	conectarPaises(hti, sal);   // Brasil
-	conectarPaises(hti, chi);   // Chile
+	conectarPaises(pr, crc);  
+	conectarPaises(pr, ecu);    
+	conectarPaises(pr, arg);    
+
+
+	conectarPaises(hti, sur);   
+	conectarPaises(hti, sal);   
+	conectarPaises(hti, chi);   
 
     return lista;
 }
@@ -490,7 +489,7 @@ void diagnosticarProblemas(struct Paises *lista) {
         } else if (i < 6) { // Segundo grupo
             pais->aspectos[0] = 2;
             pais->aspectos[1] = 1;
-        } else { // Último grupo
+        } else { // Ultimo grupo
             for (int j = 0; j < pais->numAspectos; j++)
                 pais->aspectos[j] = 1;
         }
@@ -536,7 +535,7 @@ void expandirProblemas(struct Paises *lista) {
 
                     if (vecino->aspectos[aspectoAfectado] < 3) {
                         vecino->aspectos[aspectoAfectado]++;
-                        printf("🦠 Expansión de %s → %s (aspecto %d sube a %d)\n",
+                        printf("🗺️ Expansion de %s → %s (aspecto %d sube a %d)\n",
                                actual->pais, vecino->pais,
                                aspectoAfectado + 1,
                                vecino->aspectos[aspectoAfectado]);
@@ -797,9 +796,42 @@ int turnoJugador(int numeroJugador, struct Node **paisActual,
             // Bajar nivel de problemáticas
             if (seleccionProyecto >= 1 && seleccionProyecto <= (*paisActual)->numAspectos) {
                 if ((*paisActual)->aspectos[seleccionProyecto - 1] > 0) {
-                    switch(seleccionProyecto) {
-                        case 1:
-                            (*paisActual)->aspectos[seleccionProyecto - 1]--;
+                    switch (seleccionProyecto) {
+                    case 1: 
+                        (*paisActual)->aspectos[seleccionProyecto - 1] -= 2;
+                        if (((*paisActual)->aspectos[seleccionProyecto - 1]) < 0) {
+                            (*paisActual)->aspectos[seleccionProyecto - 1] = 0;
+                        }
+						agregarPaisAProyecto(p1, (*paisActual)->pais); 
+						break;
+                    case 2: 
+                        (*paisActual)->aspectos[seleccionProyecto - 1]--;
+                        if (((*paisActual)->aspectos[seleccionProyecto - 1]) < 0) {
+                            (*paisActual)->aspectos[seleccionProyecto - 1] = 0;
+                        }
+						agregarPaisAProyecto(p2, (*paisActual)->pais); 
+						break;
+                    case 3: 
+                        (*paisActual)->aspectos[seleccionProyecto - 1]--;
+                        if (((*paisActual)->aspectos[seleccionProyecto - 1]) < 0) {
+                            (*paisActual)->aspectos[seleccionProyecto - 1] = 0;
+                        }
+						agregarPaisAProyecto(p3, (*paisActual)->pais); 
+						break;
+                    case 4: 
+                        (*paisActual)->aspectos[seleccionProyecto - 1] -= 3;
+                        if (((*paisActual)->aspectos[seleccionProyecto - 1]) < 0) {
+                            (*paisActual)->aspectos[seleccionProyecto - 1] = 0;
+                        }
+						agregarPaisAProyecto(p4, (*paisActual)->pais); 
+						break;
+                    case 5: 
+                        (*paisActual)->aspectos[seleccionProyecto - 1] -= 2;
+                        if (((*paisActual)->aspectos[seleccionProyecto - 1]) < 0) {
+                            (*paisActual)->aspectos[seleccionProyecto - 1] = 0;
+                        }
+						agregarPaisAProyecto(p5, (*paisActual)->pais); 
+						break;
                     }
                     
                     printf("📉 Problemas reducidos en %s\n", (*paisActual)->pais);
@@ -808,23 +840,7 @@ int turnoJugador(int numeroJugador, struct Node **paisActual,
                 }
 
                 // Asociar país al proyecto
-                switch (seleccionProyecto) {
-                    case 1: 
-						agregarPaisAProyecto(p1, (*paisActual)->pais); 
-						break;
-                    case 2: 
-						agregarPaisAProyecto(p2, (*paisActual)->pais); 
-						break;
-                    case 3: 
-						agregarPaisAProyecto(p3, (*paisActual)->pais); 
-						break;
-                    case 4: 
-						agregarPaisAProyecto(p4, (*paisActual)->pais); 
-						break;
-                    case 5: 
-						agregarPaisAProyecto(p5, (*paisActual)->pais); 
-						break;
-                }
+                
             } else {
                 printf("❌ Número de proyecto inválido.\n");
                 continue;
@@ -859,6 +875,13 @@ int main() {
     srand(time(NULL)); // semilla única
     struct Paises *latam = crearMapaLatinoamerica();
 
+    printf("Las problematicas presentes en el mundo son las siguientes:\n");
+    printf("🔫 1. Asesinatos y homicidios\n");
+    printf("💰 2. Robos y asaltos\n");
+    printf("💊 3. Narcotráfico\n");
+    printf("🕴️ 4. Extorsión y secuestro\n");
+    printf("🚓 5. Corrupción y complicidad institucional\n");
+    
     printf("\n🔬 Realizando diagnóstico inicial de problemas...\n\n");
     diagnosticarProblemas(latam);
 
