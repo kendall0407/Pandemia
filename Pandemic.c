@@ -550,34 +550,25 @@ void expandirProblemas(struct Paises *lista) {
 // Verificar condiciones de victoria o derrota
 int verificarEstadoJuego(struct Paises *lista) {
     int paisesTotales = 0;
-    int paisesColapsados = 0;
     int paisesEstables = 0;
     struct Node *actual = lista->start;
 
     while (actual != NULL) {
         paisesTotales++;
-        int colapsado = 1;
         int estable = 1;
 
         for (int i = 0; i < actual->numAspectos; i++) {
-            if (actual->aspectos[i] < 3)
-                colapsado = 0; // no colapsado
-
             if (actual->aspectos[i] > 1)
                 estable = 0; // no estable
         }
 
-        if (colapsado) paisesColapsados++;
+
         if (estable) paisesEstables++;
 
         actual = actual->sigt;
     }
 
-    if (paisesTotales == 0) return -1; // todos eliminados, derrota total
-
-    if (paisesColapsados >= 3) {
-        return -1; // derrota
-    }
+    if (paisesTotales <= 3) return -1; // todos eliminados, derrota total
 
     if (paisesEstables == paisesTotales) {
         return 1; // victoria
